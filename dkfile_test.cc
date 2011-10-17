@@ -65,10 +65,11 @@ int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
   T -> SetBranchAddress( "pz" , &pz ) ;
 
   // for the Dalitz plot
-  TLorentzVector lv_Kp(0,0,0,0), lv_Km(0,0,0,0), lv_pip(0,0,0,0),
-    lv_pim(0,0,0,0), lv_12(0,0,0,0), lv_23(0,0,0,0);
+  TLorentzVector lv_Kp(0,0,0,0), lv_Km(0,0,0,0), lv_pip(0,0,0,0), lv_pim(0,0,0,0),
+    lv_12(0,0,0,0), lv_23(0,0,0,0), lv_12v2(0,0,0,0), lv_23v2(0,0,0,0);
 
   TH2D *hDalitz = new TH2D( "hDalitz", "Dalitz plot", 20, 0, 4, 20, 0, 4);
+  TH2D *hDalitzv2 = new TH2D( "hDalitzv2", "Dalitz plot v2", 20, 0, 4, 20, 0, 4);
 
   // temporary variables used later
   Float_t PDG(0), PDGm(0);
@@ -199,20 +200,38 @@ int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
 
       if (isDsp)                // Ds+ -> K- K+ pi+
         {
+	  // version 1
           lv_12 = lv_Km + lv_Kp;
           lv_23 = lv_Kp + lv_pip; // ??
+	  // version 2
+          lv_12v2 = lv_Km + lv_Kp;
+          lv_23v2 = lv_Km + lv_pip;
+
           if (DEBUG >= 1) printf("  DEBUG1: m12: %1.3f GeV, m23: %1.3f GeV\n",
                                  lv_12.M2(), lv_23.M2() );
+          if (DEBUG >= 1) printf("  DEBUG1: v2: m12: %1.3f GeV, m23: %1.3f GeV\n",
+                                 lv_12v2.M2(), lv_23v2.M2() );
+
           hDalitz->Fill( lv_12.M2(), lv_23.M2() );
+          hDalitzv2->Fill( lv_12v2.M2(), lv_23v2.M2() );
         }
 
       if (isDsm)                // Ds- -> K+ K- pi-
         {
+	  // version 1
           lv_12 = lv_Km + lv_Kp;
           lv_23 = lv_Km + lv_pim; // ??
+	  // version 2
+          lv_12v2 = lv_Km + lv_Kp;
+          lv_23v2 = lv_Kp + lv_pim;
+
           if (DEBUG >= 1) printf("  DEBUG1: m12: %1.3f GeV, m23: %1.3f GeV\n",
                                  lv_12.M2(), lv_23.M2() );
+          if (DEBUG >= 1) printf("  DEBUG1: v2: m12: %1.3f GeV, m23: %1.3f GeV\n",
+                                 lv_12v2.M2(), lv_23v2.M2() );
+
           hDalitz->Fill( lv_12.M2(), lv_23.M2() );
+          hDalitzv2->Fill( lv_12v2.M2(), lv_23v2.M2() );
         }
 
       // cleanup
@@ -227,8 +246,17 @@ int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
   hDalitz->SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
   hDalitz->SetYTitle("m^{2}(K^{+}#pi^{+} / K^{-}#pi^{-}) GeV^{2}/c^{4}");
   hDalitz->Draw("SCAT");
+  hDalitz->SaveAs("Dalitz_plot.cc", "SCAT");
   gPad->Print("Dalitz_plot_Ds.png");
+
+  hDalitzv2->SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
+  hDalitzv2->SetYTitle("m^{2}(K^{-}#pi^{+} / K^{+}#pi^{-}) GeV^{2}/c^{4}");
+  hDalitzv2->Draw("SCAT");
+  hDalitzv2->SaveAs("Dalitz_plot_v2.cc", "SCAT");
+  gPad->Print("Dalitz_plot_Ds_v2.png");
+
   if (DEBUG >= 1) hDalitz->Print("all");
+  if (DEBUG >= 1) hDalitzv2->Print("all");
 
   return 0 ;
 }
