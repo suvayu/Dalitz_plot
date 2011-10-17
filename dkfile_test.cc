@@ -31,6 +31,29 @@ int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
   TFile f( fileglob.c_str() ) ;
   TTree * T = (TTree*) f.Get( "GeneratorFullMonitor/1" ) ;
 
+  // // For castor
+  // TChain *T = new TChain("GeneratorFullMonitor/1", -1);
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310425/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310428/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310431/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310433/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310435/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310438/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310440/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310442/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310445/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310447/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310487/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310491/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310496/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310500/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310504/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310510/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310514/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310519/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310522/GaussMonitor.root");
+  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310529/GaussMonitor.root");
+
   Int_t nEvents = T -> GetEntries() ;
   printf( "Nentries = %d\n" , nEvents ) ;
 
