@@ -86,8 +86,8 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   TLorentzVector lv_Kp(0,0,0,0), lv_Km(0,0,0,0), lv_pip(0,0,0,0), lv_pim(0,0,0,0),
     lv_12(0,0,0,0), lv_23(0,0,0,0), lv_12v2(0,0,0,0), lv_23v2(0,0,0,0);
 
-  TH2D *hDalitz = new TH2D( "hDalitz", "Dalitz plot", 20, 0, 4, 20, 0, 4);
-  TH2D *hDalitzv2 = new TH2D( "hDalitzv2", "Dalitz plot v2", 20, 0, 4, 20, 0, 4);
+  TH2D *hDalitz = new TH2D( "hDalitz", "Dalitz plot", 20, 0.5, 3.5, 20, 0, 2.5);
+  TH2D *hDalitzv2 = new TH2D( "hDalitzv2", "Dalitz plot v2", 20, 0.5, 3.5, 20, 0, 2.5);
 
   // temporary variables used later
   Float_t PDG(0), PDGm(0);
