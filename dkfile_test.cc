@@ -22,6 +22,7 @@
 #include "TLorentzVector.h"
 #include "TROOT.h"
 #include "TH2D.h"
+#include "TCanvas.h"
 #include "TPad.h"
 #include "TStyle.h"
 #include "TString.h"
@@ -42,14 +43,14 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   std::vector<TString> files;
   readlist(files);
 
-  TChain *T = new TChain("GeneratorFullMonitor/1");
+  TChain T("GeneratorFullMonitor/1");
   for ( unsigned int i(0); i < (files.size() - 1); ++i ) // FIXME: the '-1' hack
     {
-      T->Add( "rfio:" + files[i], -1);
+      T.Add( "rfio:" + files[i], -1);
       // std::cout << i << ":rfio:" + files[i] << std::endl;
     }
 
-  Int_t nEvents = T -> GetEntries() ;
+  Int_t nEvents = T.GetEntries() ;
   printf( "Nentries = %d\n" , nEvents ) ;
 
   Int_t nPart, nInter;
@@ -65,29 +66,29 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   Float_t IdMother[2000] ;
   Float_t e[2000] , px[2000] , py[2000], pz[2000] ;
 
-  T -> SetBranchAddress( "NInter" , &nInter ) ;
-  T -> SetBranchAddress( "NPart" , &nPart ) ;
-  T -> SetBranchAddress( "pdgId" , &pdgId ) ;
-  T -> SetBranchAddress( "nDau" , &nDau ) ;
-  T -> SetBranchAddress( "pdgIdDau1" , &pdgIdDau1 ) ;
-  T -> SetBranchAddress( "pdgIdDau2" , &pdgIdDau2 ) ;
-  T -> SetBranchAddress( "pdgIdDau3" , &pdgIdDau3 ) ;
-  T -> SetBranchAddress( "pdgIdDau4" , &pdgIdDau4 ) ;
-  T -> SetBranchAddress( "pdgIdDau5" , &pdgIdDau5 ) ;
-  T -> SetBranchAddress( "pdgIdDau6" , &pdgIdDau6 ) ;
-  T -> SetBranchAddress( "pdgIdMother" , &pdgIdMother ) ;
-  T -> SetBranchAddress( "indexMother" , &IdMother ) ;
-  T -> SetBranchAddress( "e"  , &e  ) ;
-  T -> SetBranchAddress( "px" , &px ) ;
-  T -> SetBranchAddress( "py" , &py ) ;
-  T -> SetBranchAddress( "pz" , &pz ) ;
+  T.SetBranchAddress( "NInter" , &nInter ) ;
+  T.SetBranchAddress( "NPart" , &nPart ) ;
+  T.SetBranchAddress( "pdgId" , &pdgId ) ;
+  T.SetBranchAddress( "nDau" , &nDau ) ;
+  T.SetBranchAddress( "pdgIdDau1" , &pdgIdDau1 ) ;
+  T.SetBranchAddress( "pdgIdDau2" , &pdgIdDau2 ) ;
+  T.SetBranchAddress( "pdgIdDau3" , &pdgIdDau3 ) ;
+  T.SetBranchAddress( "pdgIdDau4" , &pdgIdDau4 ) ;
+  T.SetBranchAddress( "pdgIdDau5" , &pdgIdDau5 ) ;
+  T.SetBranchAddress( "pdgIdDau6" , &pdgIdDau6 ) ;
+  T.SetBranchAddress( "pdgIdMother" , &pdgIdMother ) ;
+  T.SetBranchAddress( "indexMother" , &IdMother ) ;
+  T.SetBranchAddress( "e"  , &e  ) ;
+  T.SetBranchAddress( "px" , &px ) ;
+  T.SetBranchAddress( "py" , &py ) ;
+  T.SetBranchAddress( "pz" , &pz ) ;
 
   // for the Dalitz plot
   TLorentzVector lv_Kp(0,0,0,0), lv_Km(0,0,0,0), lv_pip(0,0,0,0), lv_pim(0,0,0,0),
     lv_12(0,0,0,0), lv_23(0,0,0,0), lv_12v2(0,0,0,0), lv_23v2(0,0,0,0);
 
-  TH2D *hDalitz = new TH2D( "hDalitz", "Dalitz plot", 20, 0.5, 3.5, 20, 0, 2.5);
-  TH2D *hDalitzv2 = new TH2D( "hDalitzv2", "Dalitz plot v2", 20, 0.5, 3.5, 20, 0, 2.5);
+  TH2D hDalitz  (   "hDalitz",    "Dalitz plot", 500, 0.5, 3.5, 500, 0, 2.5);
+  TH2D hDalitzv2( "hDalitzv2", "Dalitz plot v2", 500, 0.5, 3.5, 500, 0, 2.5);
 
   // temporary variables used later
   Float_t PDG(0), PDGm(0);
@@ -99,7 +100,7 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   // test with some const (e.g. 2000) instead of nEvents
   for ( Int_t i(0); i < nEvents ; ++i )
     {
-      T -> GetEntry( i ) ;
+      T.GetEntry( i ) ;
 
       if (DEBUG >= 4) std::cout << "DEBUG1: NInter : " << nInter
                                 << ", NPart : " << nPart << std::endl;
@@ -230,8 +231,8 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
           if (DEBUG >= 1) printf("  DEBUG1: v2: m12: %1.3f GeV, m23: %1.3f GeV\n",
                                  lv_12v2.M2(), lv_23v2.M2() );
 
-          hDalitz->Fill( lv_12.M2(), lv_23.M2() );
-          hDalitzv2->Fill( lv_12v2.M2(), lv_23v2.M2() );
+          hDalitz  .Fill(   lv_12.M2(), lv_23.M2()   );
+          hDalitzv2.Fill( lv_12v2.M2(), lv_23v2.M2() );
         }
 
       if (isDsm)                // Ds- -> K+ K- pi-
@@ -248,8 +249,8 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
           if (DEBUG >= 1) printf("  DEBUG1: v2: m12: %1.3f GeV, m23: %1.3f GeV\n",
                                  lv_12v2.M2(), lv_23v2.M2() );
 
-          hDalitz->Fill( lv_12.M2(), lv_23.M2() );
-          hDalitzv2->Fill( lv_12v2.M2(), lv_23v2.M2() );
+          hDalitz  .Fill(   lv_12.M2(), lv_23.M2()   );
+          hDalitzv2.Fill( lv_12v2.M2(), lv_23v2.M2() );
         }
 
       // cleanup
@@ -260,21 +261,23 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
       lv_23.SetXYZT(0,0,0,0);
     }
 
-  // gStyle->SetTitleOffset(1, "XY");
-  hDalitz->SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
-  hDalitz->SetYTitle("m^{2}(K^{+}#pi^{+} / K^{-}#pi^{-}) GeV^{2}/c^{4}");
-  hDalitz->Draw("SCAT");
-  hDalitz->SaveAs("Dalitz_plot.cc", "SCAT");
+  TCanvas canvas( "canvas", "Dalitz plot", 600, 600);
+  canvas.cd();
+  gStyle->SetTitleOffset( 1.2, "XY");
+  hDalitz.SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
+  hDalitz.SetYTitle("m^{2}(K^{+}#pi^{+} / K^{-}#pi^{-}) GeV^{2}/c^{4}");
+  hDalitz.Draw("SCAT");
+  hDalitz.SaveAs("Dalitz_plot.cc", "SCAT");
   gPad->Print("Dalitz_plot_Ds.png");
 
-  hDalitzv2->SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
-  hDalitzv2->SetYTitle("m^{2}(K^{-}#pi^{+} / K^{+}#pi^{-}) GeV^{2}/c^{4}");
-  hDalitzv2->Draw("SCAT");
-  hDalitzv2->SaveAs("Dalitz_plot_v2.cc", "SCAT");
+  hDalitzv2.SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
+  hDalitzv2.SetYTitle("m^{2}(K^{-}#pi^{+} / K^{+}#pi^{-}) GeV^{2}/c^{4}");
+  hDalitzv2.Draw("SCAT");
+  hDalitzv2.SaveAs("Dalitz_plot_v2.cc", "SCAT");
   gPad->Print("Dalitz_plot_Ds_v2.png");
 
-  if (DEBUG >= 1) hDalitz->Print("all");
-  if (DEBUG >= 1) hDalitzv2->Print("all");
+  if (DEBUG >= 1) hDalitz  .Print("all");
+  if (DEBUG >= 1) hDalitzv2.Print("all");
 
   return 0 ;
 }
