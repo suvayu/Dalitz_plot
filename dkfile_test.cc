@@ -13,6 +13,7 @@
 #include <utility>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 
 #include "TFile.h"
@@ -23,37 +24,30 @@
 #include "TH2D.h"
 #include "TPad.h"
 #include "TStyle.h"
+#include "TString.h"
 
-int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
+
+void readlist( std::vector<TString> &var);
+
+
+int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
 {
   gROOT->Reset();
 
-  // To be modified later for TChains
-  TFile f( fileglob.c_str() ) ;
-  TTree * T = (TTree*) f.Get( "GeneratorFullMonitor/1" ) ;
+  // // To be modified later for TChains
+  // TFile f( fileglob.c_str() ) ;
+  // TTree * T = (TTree*) f.Get( "GeneratorFullMonitor/1" ) ;
 
-  // // For castor
-  // TChain *T = new TChain("GeneratorFullMonitor/1");
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310425/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310428/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310431/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310433/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310435/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310438/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310440/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310442/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310445/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310447/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310487/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310491/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310496/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310500/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310504/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310510/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310514/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310519/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310522/GaussMonitor.root", -1);
-  // T->Add("rfio:/castor/cern.ch/grid/lhcb/user/s/sali/2011_10/26310/26310529/GaussMonitor.root", -1);
+  // For castor (also works for local files)
+  std::vector<TString> files;
+  readlist(files);
+
+  TChain *T = new TChain("GeneratorFullMonitor/1");
+  for ( unsigned int i(0); i < (files.size() - 1); ++i ) // FIXME: the '-1' hack
+    {
+      T->Add( "rfio:" + files[i], -1);
+      // std::cout << i << ":rfio:" + files[i] << std::endl;
+    }
 
   Int_t nEvents = T -> GetEntries() ;
   printf( "Nentries = %d\n" , nEvents ) ;
@@ -226,7 +220,7 @@ int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
         {
 	  // version 1
           lv_12 = lv_Km + lv_Kp;
-          lv_23 = lv_Kp + lv_pip; // ??
+          lv_23 = lv_Kp + lv_pip; // ?
 	  // version 2
           lv_12v2 = lv_Km + lv_Kp;
           lv_23v2 = lv_Km + lv_pip;
@@ -242,10 +236,10 @@ int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
 
       if (isDsm)                // Ds- -> K+ K- pi-
         {
-	  // version 1
+  	  // version 1
           lv_12 = lv_Km + lv_Kp;
           lv_23 = lv_Km + lv_pim; // ??
-	  // version 2
+  	  // version 2
           lv_12v2 = lv_Km + lv_Kp;
           lv_23v2 = lv_Kp + lv_pim;
 
@@ -283,6 +277,29 @@ int dkfile_test(std::string fileglob="GaussMonitor.root", int DEBUG=0)
   if (DEBUG >= 1) hDalitzv2->Print("all");
 
   return 0 ;
+}
+
+
+/**
+ * Parse files.lst to read file list for chain.
+ *
+ * @param var Vector of TString for file names.
+ */
+void readlist( std::vector<TString> &var)
+{
+  ifstream inFile("files.lst");
+
+  while (! inFile.eof())
+    {
+      TString tmp;
+      tmp.ReadToken(inFile);
+      if (tmp.BeginsWith("#"))
+	{
+	  tmp.ReadLine(inFile);
+	  continue;
+	}
+      var.push_back(tmp);
+    }
 }
 
 
