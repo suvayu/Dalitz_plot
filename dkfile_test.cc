@@ -87,8 +87,8 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   TLorentzVector lv_Kp(0,0,0,0), lv_Km(0,0,0,0), lv_pip(0,0,0,0), lv_pim(0,0,0,0),
     lv_12(0,0,0,0), lv_23(0,0,0,0), lv_12v2(0,0,0,0), lv_23v2(0,0,0,0);
 
-  TH2D hDalitz  (   "hDalitz",    "Dalitz plot", 500, 0.5, 3.5, 500, 0, 2.5);
-  TH2D hDalitzv2( "hDalitzv2", "Dalitz plot v2", 500, 0.5, 3.5, 500, 0, 2.5);
+  TH2D hDalitz  (   "hDalitz",    "Dalitz plot", 200, 0.5, 3.5, 200, 0, 2.5);
+  TH2D hDalitzv2( "hDalitzv2", "Dalitz plot v2", 200, 0.5, 3.5, 200, 0, 2.5);
 
   // temporary variables used later
   Float_t PDG(0), PDGm(0);
@@ -259,21 +259,27 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
       isDsp = isDsm = false;
       lv_12.SetXYZT(0,0,0,0);
       lv_23.SetXYZT(0,0,0,0);
+      lv_12v2.SetXYZT(0,0,0,0);
+      lv_23v2.SetXYZT(0,0,0,0);
     }
 
-  TCanvas canvas( "canvas", "Dalitz plot", 600, 600);
+  TCanvas canvas( "canvas", "Dalitz plot", 800, 600);
   canvas.cd();
-  gStyle->SetTitleOffset( 1.2, "XY");
+  gStyle->SetOptStat(0);
+  // gStyle->SetTitleOffset( 1, "XY");
+  gStyle->SetPalette(1); // "rainbow" color palette
+  gStyle->SetNumberContours(256); // smooth color palette
+
   hDalitz.SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
   hDalitz.SetYTitle("m^{2}(K^{+}#pi^{+} / K^{-}#pi^{-}) GeV^{2}/c^{4}");
-  hDalitz.Draw("SCAT");
-  hDalitz.SaveAs("Dalitz_plot.cc", "SCAT");
+  hDalitz.Draw("COLZ");
+  hDalitz.SaveAs("Dalitz_plot.cc", "COLZ");
   gPad->Print("Dalitz_plot_Ds.png");
 
   hDalitzv2.SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
   hDalitzv2.SetYTitle("m^{2}(K^{-}#pi^{+} / K^{+}#pi^{-}) GeV^{2}/c^{4}");
-  hDalitzv2.Draw("SCAT");
-  hDalitzv2.SaveAs("Dalitz_plot_v2.cc", "SCAT");
+  hDalitzv2.Draw("COLZ");
+  hDalitzv2.SaveAs("Dalitz_plot_v2.cc", "COLZ");
   gPad->Print("Dalitz_plot_Ds_v2.png");
 
   if (DEBUG >= 1) hDalitz  .Print("all");
