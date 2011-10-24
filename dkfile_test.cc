@@ -126,6 +126,20 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
           PDG = pdgId[j];
           PDGm = pdgIdMother[j];
 
+	  // Count Ds and check if 3 Ds daughters
+	  if (fabs(PDG) == 431)
+	    {
+	      Dscount++;
+	      if (nDau[j] != 3)
+		{
+		  neq3Dau = true;
+		}
+
+	      if (DEBUG >= 1) printf("  DEBUG1: Ds count: %d, # dau: %d\n",
+				     Dscount, (Int_t) nDau[j]);
+	    }
+
+	  // select particles
           if (( fabs( PDG ) == 321 && fabs( PDGm ) == 431 ) // K from Ds
               || ( fabs( PDG ) == 211 && fabs( PDGm ) == 431
                    && (PDG * PDGm) > 0 )) // pi from Ds with same sign
@@ -139,6 +153,9 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
               // with type casting. abandon for now
             }
         }
+
+      // accept only events where Ds decays to 3 daughters
+      if (neq3Dau) continue;
 
       sizep = (Int_t) Dsp.size();
       sizem = (Int_t) Dsm.size();
