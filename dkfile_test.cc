@@ -31,13 +31,14 @@
 void readlist( std::vector<TString> &var);
 
 
-int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
+int dkfile_test( int DEBUG=0 )
 {
   gROOT->Reset();
 
-  // // To be modified later for TChains
-  // TFile f( fileglob.c_str() ) ;
-  // TTree * T = (TTree*) f.Get( "GeneratorFullMonitor/1" ) ;
+  /**
+   * Read files and make TChain
+   *
+   */
 
   // For castor (also works for local files)
   std::vector<TString> files;
@@ -47,7 +48,6 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   for ( unsigned int i(0); i < (files.size() - 1); ++i ) // FIXME: the '-1' hack
     {
       T.Add( "rfio:" + files[i], -1);
-      // std::cout << i << ":rfio:" + files[i] << std::endl;
     }
 
   Int_t nEvents = T.GetEntries() ;
@@ -83,23 +83,41 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   T.SetBranchAddress( "py" , &py ) ;
   T.SetBranchAddress( "pz" , &pz ) ;
 
-  // for the Dalitz plot
-  TLorentzVector lv_Kp(0,0,0,0), lv_Km(0,0,0,0), lv_pip(0,0,0,0), lv_pim(0,0,0,0),
-    lv_12(0,0,0,0), lv_23(0,0,0,0), lv_12v2(0,0,0,0), lv_23v2(0,0,0,0);
+  /**
+   * Declare variables
+   *
+   */
 
-  TH2D hDalitz  (   "hDalitz",    "Dalitz plot", 200, 0.5, 3.5, 200, 0, 2.5);
-  TH2D hDalitzv2( "hDalitzv2", "Dalitz plot v2", 200, 0.5, 3.5, 200, 0, 2.5);
+  // for the Dalitz plot
+  TLorentzVector lv_Kp(0,0,0,0), lv_Km(0,0,0,0), lv_pip(0,0,0,0),
+    lv_pim(0,0,0,0), lv_12(0,0,0,0), lv_23(0,0,0,0);
+
+  TH2D hDalitz( "hDalitz", "", 200, 0.5, 3.5, 200, 0, 2.5);
 
   // temporary variables used later
   Float_t PDG(0), PDGm(0);
-  Int_t sizep(0), sizem(0);
+  Int_t sizep(0), sizem(0), Dscount(0);
   std::vector<Int_t> Dsp, Dsm;
   bool isDsp(false), isDsm(false), hasKp(false), hasKm(false),
-    haspip(false), haspim(false);
+    haspip(false), haspim(false), neq3Dau(false);
+
+
+  /**
+   * Event loop
+   *
+   */
 
   // test with some const (e.g. 2000) instead of nEvents
   for ( Int_t i(0); i < nEvents ; ++i )
     {
+      // cleanup
+      Dscount = 0;
+      Dsp.clear();
+      Dsm.clear();
+      isDsp = isDsm = neq3Dau = false;
+      lv_12.SetXYZT(0,0,0,0);
+      lv_23.SetXYZT(0,0,0,0);
+
       T.GetEntry( i ) ;
 
       if (DEBUG >= 4) std::cout << "DEBUG1: NInter : " << nInter
@@ -149,8 +167,8 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
 
               if ( PDGm ==  431 ) Dsp.push_back(j);
               if ( PDGm == -431 ) Dsm.push_back(j);
-              // pdgIdMother[] is giving random results, maybe problem
-              // with type casting. abandon for now
+              // pdgIdMother[indexMother[]] is giving random results,
+	      // maybe problem with type casting. abandon for now
             }
         }
 
@@ -160,9 +178,16 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
       sizep = (Int_t) Dsp.size();
       sizem = (Int_t) Dsm.size();
 
-      // reconstruct Ds+
-      if ( sizep == 3 )
+      /**
+       * Reconstruct Ds+
+       *
+       */
+
+      if ( sizep == 3 )		// redundant
         {
+          // cleanup
+          hasKp = hasKm = haspip = false;
+
           for ( Int_t k(0); k < sizep; ++k)
             {
               if ( pdgId[ Dsp[k] ] ==  321 )
@@ -192,14 +217,18 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
 
           if ( hasKp && hasKm && haspip ) isDsp = true;
           if (DEBUG >= 2) std::cout << "  DEBUG2: Ds+:" << isDsp << std::endl;
-
-          // cleanup
-          hasKp = hasKm = haspip = false;
         }
 
-      // reconstruct Ds-
-      if ( sizem == 3 )
+      /**
+       * Reconstruct Ds-
+       *
+       */
+
+      if ( sizem == 3 )		// redundant
         {
+          // cleanup
+          hasKp = hasKm = haspim = false;
+
           for ( Int_t k(0); k < sizem; ++k)
             {
               if ( pdgId[ Dsm[k] ] ==  321 )
@@ -229,56 +258,40 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
 
           if ( hasKp && hasKm && haspim ) isDsm = true;
           if (DEBUG >= 2) std::cout << "  DEBUG2: Ds-:" << isDsm << std::endl;
-
-          // cleanup
-          hasKp = hasKm = haspim = false;
         }
+
+      /**
+       * Dalitz plot
+       *
+       */
 
       if (isDsp)                // Ds+ -> K- K+ pi+
         {
-	  // version 1
           lv_12 = lv_Km + lv_Kp;
-          lv_23 = lv_Kp + lv_pip; // ?
-	  // version 2
-          lv_12v2 = lv_Km + lv_Kp;
-          lv_23v2 = lv_Km + lv_pip;
+          lv_23 = lv_Km + lv_pip;
 
           if (DEBUG >= 1) printf("  DEBUG1: m12: %1.3f GeV, m23: %1.3f GeV\n",
                                  lv_12.M2(), lv_23.M2() );
-          if (DEBUG >= 1) printf("  DEBUG1: v2: m12: %1.3f GeV, m23: %1.3f GeV\n",
-                                 lv_12v2.M2(), lv_23v2.M2() );
 
-          hDalitz  .Fill(   lv_12.M2(), lv_23.M2()   );
-          hDalitzv2.Fill( lv_12v2.M2(), lv_23v2.M2() );
+          hDalitz.Fill( lv_12.M2(), lv_23.M2() );
         }
 
       if (isDsm)                // Ds- -> K+ K- pi-
         {
-  	  // version 1
           lv_12 = lv_Km + lv_Kp;
-          lv_23 = lv_Km + lv_pim; // ??
-  	  // version 2
-          lv_12v2 = lv_Km + lv_Kp;
-          lv_23v2 = lv_Kp + lv_pim;
+          lv_23 = lv_Kp + lv_pim;
 
           if (DEBUG >= 1) printf("  DEBUG1: m12: %1.3f GeV, m23: %1.3f GeV\n",
                                  lv_12.M2(), lv_23.M2() );
-          if (DEBUG >= 1) printf("  DEBUG1: v2: m12: %1.3f GeV, m23: %1.3f GeV\n",
-                                 lv_12v2.M2(), lv_23v2.M2() );
 
-          hDalitz  .Fill(   lv_12.M2(), lv_23.M2()   );
-          hDalitzv2.Fill( lv_12v2.M2(), lv_23v2.M2() );
+          hDalitz.Fill( lv_12.M2(), lv_23.M2() );
         }
-
-      // cleanup
-      Dsp.clear();
-      Dsm.clear();
-      isDsp = isDsm = false;
-      lv_12.SetXYZT(0,0,0,0);
-      lv_23.SetXYZT(0,0,0,0);
-      lv_12v2.SetXYZT(0,0,0,0);
-      lv_23v2.SetXYZT(0,0,0,0);
     }
+
+  /**
+   * Make plot and print to file
+   *
+   */
 
   TCanvas canvas( "canvas", "Dalitz plot", 800, 600);
   canvas.cd();
@@ -288,19 +301,14 @@ int dkfile_test( int DEBUG=0 ) 	// std::string fileglob="GaussMonitor.root",
   gStyle->SetNumberContours(256); // smooth color palette
 
   hDalitz.SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
-  hDalitz.SetYTitle("m^{2}(K^{+}#pi^{+} / K^{-}#pi^{-}) GeV^{2}/c^{4}");
+  hDalitz.SetYTitle("m^{2}(K^{-}#pi^{+} / K^{+}#pi^{-}) GeV^{2}/c^{4}");
+  hDalitz.GetXaxis()->CenterTitle(true);
+  hDalitz.GetYaxis()->CenterTitle(true);
   hDalitz.Draw("COLZ");
   hDalitz.SaveAs("Dalitz_plot.cc", "COLZ");
   gPad->Print("Dalitz_plot_Ds.png");
 
-  hDalitzv2.SetXTitle("m^{2}(K^{+}K^{-}) GeV^{2}/c^{4}");
-  hDalitzv2.SetYTitle("m^{2}(K^{-}#pi^{+} / K^{+}#pi^{-}) GeV^{2}/c^{4}");
-  hDalitzv2.Draw("COLZ");
-  hDalitzv2.SaveAs("Dalitz_plot_v2.cc", "COLZ");
-  gPad->Print("Dalitz_plot_Ds_v2.png");
-
-  if (DEBUG >= 1) hDalitz  .Print("all");
-  if (DEBUG >= 1) hDalitzv2.Print("all");
+  if (DEBUG >= 1) hDalitz.Print("all");
 
   return 0 ;
 }
